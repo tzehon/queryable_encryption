@@ -5,8 +5,6 @@ from bson.codec_options import CodecOptions
 from bson.binary import STANDARD, UUID
 import os
 
-# cat <private key> | jq -r .private_key | openssl pkcs8 -topk8 -nocrypt -inform PEM -outform DER | base64
-
 def get_kms_provider_credentials(kms_provider_string):
     if kms_provider_string == "aws":
         # start-aws-kms-credentials
