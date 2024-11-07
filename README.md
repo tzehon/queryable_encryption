@@ -1,62 +1,103 @@
 # Python Queryable Encryption Tutorial
 
-This project demonstrates an example implementation of Queryable Encryption
-for the PyMongo driver. To learn more about Queryable Encryption, see the
-[Queryable Encryption](https://www.mongodb.com/docs/manual/core/queryable-encryption/quick-start/)
-section in the Server manual.
+This tutorial demonstrates how to implement Queryable Encryption with the PyMongo driver. For comprehensive documentation, see the [Queryable Encryption documentation](https://www.mongodb.com/docs/manual/core/queryable-encryption/quick-start/).
 
-The following sections provide instructions on how to set up and run this project.
+## Prerequisites
 
-## Install Dependencies
+The following components must be installed before running this application:
 
-To run this sample app, you first need to install the following
-dependencies:
+- MongoDB Server (v7.0+)
+- Automatic Encryption Shared Library (v7.0+)
+- Python 3
+- pip
 
-- MongoDB Server version 7.0 or later
-- Automatic Encryption Shared Library version 7.0 or later
-- `python3`
-- `pip`
+For detailed installation requirements, refer to the [Installation Guide](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/#std-label-qe-install).
 
-For more information on installation requirements for Queryable Encryption,
-see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/#std-label-qe-install).
+## Environment Setup
 
-## Configure Your Environment
+1. Create a `.env` file in your cloud provider's root directory:
+   ```bash
+   cp env_template .env
+   ```
 
-1. Create a file in the root of your cloud provider's directory named `.env`.
+2. Update the `.env` file with your credentials. For guidance, see:
+   - [Queryable Encryption Tutorials](https://www.mongodb.com/docs/manual/core/queryable-encryption/tutorials/) for KMS credentials
+   - [Quick Start Guide](https://www.mongodb.com/docs/manual/core/queryable-encryption/quick-start/) for local key provider credentials
 
-1. Copy the contents of `env_template` into the `.env` file.
+   Note: The application uses `pydotenv` to manage credentials without modifying existing environment variables.
 
-1. Replace the placeholder values in the `.env` file with your own credentials.
-   For more information on setting credentials, see
-   [Queryable Encryption Tutorials](https://www.mongodb.com/docs/manual/core/queryable-encryption/tutorials/)
-   for KMS credentials or the
-   [Quick Start](https://www.mongodb.com/docs/manual/core/queryable-encryption/quick-start/)
-   for local key provider credentials.
+3. For GCP users:
 
-   > **Note:** The sample application uses the `pydotenv` package to access
-   > the credentials as if they were defined as environment variables, but
-   > does not overwrite any environment variables you currently have set.
+   **JSON Format Credentials:**
+   ```bash
+   cat <credentials-filename> | jq -r .private_key | openssl pkcs8 -topk8 -nocrypt -inform PEM -outform DER | base64
+   ```
 
-1. For GCP, If you downloaded your credentials in JSON format, you can use the following command to extract the value of  your private key, substituting <credentials-filename> with the name of your credentials file. The following command requires that you install OpenSSL:
-    ```
-    cat <credentials-filename> | jq -r .private_key | openssl pkcs8 -topk8 -nocrypt -inform PEM -outform DER | base64
-    ```
-    If you downloaded your credentials in PKCS12 format, you need to specify your GCP service account import password and to add a PEM pass phrase to access the key when accessing it using the following command, substituting <credentials-filename> with the name of your credentials file:
-    ```
-    openssl pkcs12 -info -in <credentials-filename>
-    ```
+   **PKCS12 Format Credentials:**
+   ```bash
+   openssl pkcs12 -info -in <credentials-filename>
+   ```
+   This command requires your GCP service account import password.
 
-## Run the Application
+## Application Setup
 
-1. In a shell, navigate to the directory in which the application
-   is saved.
+1. Install required packages:
+   ```bash
+   python3 -m pip install -r requirements.txt
+   ```
 
-1. Run `python3 -m pip install -r requirements.txt` to install the Python driver and
-   `pymongocrypt`.
+2. Configure KMS provider:
+   - Open `queryable-encryption-tutorial.py`
+   - Replace `<Your KMS Provider Name>` with your provider's name
 
-1. In `queryable-encryption-tutorial.py`, replace the placeholder `<Your KMS
-   Provider Name>` with a valid KMS provider name.
+## Running the Application
 
-1. Run `python3 queryable_encryption_tutorial.py` to run the application.
+Execute the application:
+```bash
+python3 queryable_encryption_tutorial.py
+```
 
-1. If successful, the application will print the sample document to the console.
+A successful run will output the sample document to the console.
+
+## Running with Docker
+
+You can also run the application using Docker with the provided Dockerfile in the `gcp` directory.
+
+### Build the Docker Image
+
+```bash
+docker build -t <name> --platform linux/arm64 .
+```
+
+### Run the Container
+
+```bash
+docker run --platform linux/arm64 -a STDERR -a STDOUT \
+    -e MONGODB_URI="<connection-string>" \
+    -e GCP_PROJECT_ID="<project-id>" \
+    -e GCP_LOCATION="<region>" \
+    -e GCP_KEY_RING="<key-ring-name>" \
+    -e GCP_KEY_NAME="<key-name>" \
+    -e GCP_EMAIL="<service-account-email>" \
+    -e GCP_PRIVATE_KEY="<private-key>" \
+    <app-name>
+```
+
+Replace the placeholder values:
+- `<name>`: Your desired Docker image name
+- `<connection-string>`: Your MongoDB connection string
+- `<project-id>`: Your GCP project ID
+- `<region>`: Your GCP region
+- `<key-ring-name>`: Your GCP key ring name
+- `<key-name>`: Your GCP key name
+- `<service-account-email>`: Your GCP service account email
+- `<private-key>`: Your GCP private key
+- `<app-name>`: The name you used when building the Docker image
+
+Note: The Docker configuration is set up for ARM64 architecture. If you're using a different architecture, adjust the `--platform` flag accordingly.
+
+## Additional Resources
+
+- [MongoDB Queryable Encryption Documentation](https://www.mongodb.com/docs/manual/core/queryable-encryption/quick-start/)
+- [Installation Requirements Guide](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/#std-label-qe-install)
+- [Tutorials](https://www.mongodb.com/docs/manual/core/queryable-encryption/tutorials/)
